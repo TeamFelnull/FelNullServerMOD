@@ -1,0 +1,12 @@
+modLoader="javafml"
+loaderVersion="[36,)"
+license="LGPL v3"
+[[mods]]
+modId="felnullserversideutil"
+version="${file.jarVersion}"
+displayName="FelNull Server Side Util"
+credits="TeamFelNull"
+authors="MORIMORI0317"
+description='''
+The Fel Null Server Util
+'''
