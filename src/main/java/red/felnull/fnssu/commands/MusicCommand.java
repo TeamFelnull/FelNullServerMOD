@@ -1,11 +1,13 @@
 package red.felnull.fnssu.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.util.text.StringTextComponent;
 import red.felnull.fnssu.music.MusicManager;
+import red.felnull.fnssu.music.NBSMusicData;
 
 public class MusicCommand {
     public static void reg(CommandDispatcher<CommandSource> d) {
@@ -16,7 +18,14 @@ public class MusicCommand {
         d.register(Commands.literal("regmusic")
                 .then(Commands.argument("url", StringArgumentType.string()).then(Commands.argument("name", StringArgumentType.string()).executes(n -> save(n.getSource(), StringArgumentType.getString(n, "url"), StringArgumentType.getString(n, "name"))))));
 
+        d.register(Commands.literal("spmusic").then(Commands.argument("speed", IntegerArgumentType.integer(1, 100)).executes(n -> changeSpeed(n.getSource(), IntegerArgumentType.getInteger(n, "speed")))));
 
+    }
+
+    public static int changeSpeed(CommandSource src, int sp) {
+        src.sendSuccess(new StringTextComponent("速度を" + sp + "に変更しました"), false);
+        NBSMusicData.speed = sp;
+        return 1;
     }
 
     public static int start(CommandSource src, String url, String name) {

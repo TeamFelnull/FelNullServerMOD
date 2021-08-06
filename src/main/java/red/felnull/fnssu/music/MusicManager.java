@@ -1,5 +1,6 @@
 package red.felnull.fnssu.music;
 
+import cf.leduyquang753.nbsapi.Song;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -17,7 +18,7 @@ public class MusicManager {
     private static final MusicManager INSTANCE = new MusicManager();
     private final Map<String, MusicInstance> musics = new HashMap<>();
     private final List<Float> FRE_NOTE;
-    private final Map<String, MusicData> SOUND_CHACH = new HashMap<>();
+    private final Map<String, IMusicData> SOUND_CHACH = new HashMap<>();
     private final Map<String, String> URL_CACH = new HashMap<>();
     private long last = 0;
 
@@ -27,7 +28,6 @@ public class MusicManager {
 
     public MusicManager() {
         FRE_NOTE = new ArrayList<>();
-
         FRE_NOTE.add(43.65f);
         FRE_NOTE.add(46.25f);
         FRE_NOTE.add(49.00f);
@@ -109,14 +109,12 @@ public class MusicManager {
         if (!name.isEmpty() && musics.containsKey(name))
             return;
 
-        FelNullServerSideUtil.LOGGER.info("Music Play Start: " + dname);
-
         if (System.currentTimeMillis() - last >= 1000 * 60 * 10) {
             SOUND_CHACH.clear();
             last = System.currentTimeMillis();
         }
 
-        MusicData musicData;
+        IMusicData musicData;
         if (SOUND_CHACH.containsKey(url)) {
             musicData = SOUND_CHACH.get(url);
         } else {
@@ -125,6 +123,8 @@ public class MusicManager {
         }
 
         musics.put(name.isEmpty() ? UUID.randomUUID().toString() : name, new MusicInstance(dim, pos, musicData));
+
+        FelNullServerSideUtil.LOGGER.info("Music Play Start: " + dname);
     }
 
     public void tick() {
@@ -134,8 +134,7 @@ public class MusicManager {
         musics.values().forEach(n -> {
             try {
                 n.tick();
-            } catch (Throwable ex) {
-
+            } catch (Throwable ignored) {
             }
         });
     }
@@ -144,22 +143,35 @@ public class MusicManager {
         musics.clear();
     }
 
-    private MusicData getMusicData(String url) throws Exception {
+    private IMusicData getMusicData(String url) throws Exception {
         URL musicURL = new URL(url);
-        List<MusicData.MusicEntry> musics = new ArrayList<>();
-        JsonObject jo = URLUtils.getJsonResponse(musicURL);
-        JsonArray ja = jo.getAsJsonArray("Beeps");
-        long startTime = 0;
-        for (JsonElement jsonElement : ja) {
-            JsonArray array = jsonElement.getAsJsonArray();
-            for (int i = 0; i < array.get(3).getAsInt(); i++) {
-                long duration = array.get(1).getAsLong();
-                MusicData.MusicEntry entry = new MusicData.MusicEntry(startTime, convertNotFr(array.get(0).getAsFloat()), duration);
-                musics.add(entry);
-                startTime += duration + Math.max(array.get(2).getAsLong(), 1);
+        try {
+            List<MusicData.MusicEntry> musics = new ArrayList<>();
+            JsonObject jo = URLUtils.getJsonResponse(musicURL);
+            JsonArray ja = jo.getAsJsonArray("Beeps");
+            long startTime = 0;
+            for (JsonElement jsonElement : ja) {
+                JsonArray array = jsonElement.getAsJsonArray();
+                for (int i = 0; i < array.get(3).getAsInt(); i++) {
+                    long duration = array.get(1).getAsLong();
+                    MusicData.MusicEntry entry = new MusicData.MusicEntry(startTime, convertNotFr(array.get(0).getAsFloat()), duration);
+                    musics.add(entry);
+                    startTime += duration + Math.max(array.get(2).getAsLong(), 1);
+                }
             }
+            return new MusicData(musics, startTime);
+        } catch (Exception ignored) {
         }
-        return new MusicData(musics, startTime);
+
+        try {
+            Song song = new Song(URLUtils.getStream(musicURL));
+            return new NBSMusicData(song);
+        } catch (Exception ignored) {
+
+        }
+
+
+        throw new IllegalStateException("No Music Src");
     }
 
     private int convertNotFr(float francy) {

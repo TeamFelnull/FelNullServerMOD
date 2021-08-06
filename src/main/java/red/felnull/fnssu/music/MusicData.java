@@ -3,9 +3,10 @@ package red.felnull.fnssu.music;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.SoundEvents;
 
+import java.util.ArrayList;
 import java.util.List;
 
-public class MusicData {
+public class MusicData implements IMusicData {
     private final List<MusicEntry> musics;
     private final long allTime;
 
@@ -44,8 +45,7 @@ public class MusicData {
 
         if (getEntry(time) != null && time - getEntry(time).startPos <= getEntry(time).beepDuration) {
             int i = getEntry(time).note % 24;
-            float f = (float) Math.pow(2.0D, (double) (i - 12) / 12.0D);
-            return f;
+            return (float) Math.pow(2.0D, (double) (i - 12) / 12.0D);
         }
         return -1;
     }
@@ -62,6 +62,18 @@ public class MusicData {
             }
         }
         return SoundEvents.NOTE_BLOCK_BASS;
+    }
+
+    @Override
+    public long getAllTime() {
+        return allTime();
+    }
+
+    @Override
+    public List<MusicSource> getMusicSource(long time) {
+        List<MusicSource> ss = new ArrayList<>();
+        ss.add(new MusicSource(getSoundEvent(time), 1, getPich(time)));
+        return ss;
     }
 
     public static class MusicEntry {
