@@ -4,7 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.vexsoftware.votifier.model.Vote;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.item.ItemStack;
 import net.minecraft.particles.ParticleTypes;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.vector.Vector3d;
@@ -23,22 +28,32 @@ import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import red.felnull.fnssu.commands.MusicCommand;
 import red.felnull.fnssu.music.MusicManager;
 import red.felnull.fnssu.util.ItemUtils;
+import red.felnull.fnssu.util.ServerUtils;
 import red.felnull.katyouvotifier.event.VotifierEvent;
-import red.felnull.katyouvotifier.util.ServerUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.UUID;
+import java.util.*;
 
 public class ServerHandler {
     private static final Map<String, Integer> VOLS = new HashMap<>();
     private static final Random random = new Random();
     private static final Gson GSON = new Gson();
+    private static long itemDeleteTime;
+    private static boolean itemDeleteWaring;
+    private static int lastCuntdown = 10;
+    private static Set<ResourceLocation> noDeleteItems = new HashSet<>();
+
+    static {
+        noDeleteItems.add(new ResourceLocation("appliedenergistics2", "purified_certus_quartz_crystal"));
+        noDeleteItems.add(new ResourceLocation("appliedenergistics2", "purified_nether_quartz_crystal"));
+        noDeleteItems.add(new ResourceLocation("appliedenergistics2", "purified_fluix_crystal"));
+        noDeleteItems.add(new ResourceLocation("appliedenergistics2", "nether_quartz_seed"));
+        noDeleteItems.add(new ResourceLocation("appliedenergistics2", "certus_crystal_seed"));
+        noDeleteItems.add(new ResourceLocation("appliedenergistics2", "fluix_crystal_seed"));
+    }
 
     @SubscribeEvent
     public static void onVotifier(VotifierEvent e) {
@@ -100,11 +115,67 @@ public class ServerHandler {
     public static void onTick(TickEvent.ServerTickEvent e) {
         if (e.side.isServer() && e.phase == TickEvent.Phase.START) {
             MusicManager.getInstance().tick();
+
+            if (itemDeleteTime == 0)
+                itemDeleteTime = System.currentTimeMillis();
+
+            long deleteTime = System.currentTimeMillis() - itemDeleteTime;
+
+            if (!itemDeleteWaring && deleteTime >= 14 * 60 * 1000) {
+                itemDeleteWaring = true;
+                ServerUtils.getMinecraftServer().getPlayerList().getPlayers().forEach(n -> {
+                    if (n.getGameProfile().getId().equals(UUID.fromString("5c751dd1-0882-4f31-ad61-c4ee928c4595")))
+                        n.displayClientMessage(new StringTextComponent("１分後にドロップしているアイテムが壊れるわ").withStyle(TextFormatting.DARK_RED), false);
+                    else
+                        n.displayClientMessage(new StringTextComponent("１分後にドロップしているアイテムが削除されます").withStyle(TextFormatting.DARK_RED), false);
+                });
+            }
+            int currentLastct = (int) (((15f * 60f * 1000f) - (float) deleteTime) / 1000f);
+            if (currentLastct <= 10) {
+                if (lastCuntdown > currentLastct) {
+                    ServerUtils.getMinecraftServer().getPlayerList().getPlayers().forEach(n -> {
+                        n.displayClientMessage(new StringTextComponent(String.format("%s秒後にドロップしているアイテムが削除されます", currentLastct)).withStyle(TextFormatting.DARK_RED), false);
+                    });
+                    lastCuntdown = currentLastct;
+                }
+            }
+
+            if (deleteTime >= 15 * 60 * 1000) {
+                itemDeleteTime = 0;
+                itemDeleteWaring = false;
+                lastCuntdown = 10;
+
+                int cont = 0;
+
+                for (ServerWorld level : ServerUtils.getMinecraftServer().getAllLevels()) {
+                    for (Entity entity : level.getAllEntities()) {
+                        if (entity instanceof ItemEntity) {
+                            ItemEntity itemEntity = (ItemEntity) entity;
+                            ItemStack stack = itemEntity.getItem();
+                            if (!noDeleteItems.contains(stack.getItem().getRegistryName())) {
+                                entity.hurt(DamageSource.OUT_OF_WORLD, 114514F);
+                                cont++;
+                            }
+                        }
+                    }
+                }
+
+                int finalCont = cont;
+                ServerUtils.getMinecraftServer().getPlayerList().getPlayers().forEach(n -> {
+                    n.displayClientMessage(new StringTextComponent(String.format("%s 個のドロップしているアイテムが削除されました", finalCont)).withStyle(TextFormatting.GOLD), false);
+                });
+            }
+
         }
     }
 
     @SubscribeEvent
     public static void onServerStart(FMLServerStartingEvent e) {
+
+        itemDeleteTime = 0;
+        itemDeleteWaring = false;
+        lastCuntdown = 10;
+
         File file = new File("touhyou.json");
         if (file.exists()) {
             JsonObject jo = null;
@@ -135,6 +206,11 @@ public class ServerHandler {
 
     @SubscribeEvent
     public static void onServerStop(FMLServerStoppingEvent e) {
+
+        itemDeleteTime = 0;
+        itemDeleteWaring = false;
+        lastCuntdown = 10;
+
         MusicManager.getInstance().stopAll();
         {
             File file = new File("touhyou.json");
