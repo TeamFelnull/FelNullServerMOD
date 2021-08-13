@@ -1,4 +1,4 @@
-package red.felnull.fnssu.music;
+package red.felnull.fnssu.oldmusic;
 
 import net.minecraft.util.RegistryKey;
 import net.minecraft.util.SoundCategory;

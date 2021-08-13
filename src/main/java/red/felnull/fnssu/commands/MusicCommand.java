@@ -6,8 +6,8 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.command.CommandSource;
 import net.minecraft.command.Commands;
 import net.minecraft.util.text.StringTextComponent;
-import red.felnull.fnssu.music.MusicManager;
-import red.felnull.fnssu.music.NBSMusicData;
+import red.felnull.fnssu.oldmusic.MusicManager;
+import red.felnull.fnssu.oldmusic.NBSMusicData;
 
 public class MusicCommand {
     public static void reg(CommandDispatcher<CommandSource> d) {

@@ -1,4 +1,4 @@
-package red.felnull.fnssu.music;
+package red.felnull.fnssu.oldmusic;
 
 import cf.leduyquang753.nbsapi.Song;
 import com.google.gson.JsonArray;
