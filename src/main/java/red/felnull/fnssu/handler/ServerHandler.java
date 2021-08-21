@@ -8,21 +8,20 @@ import net.minecraft.particles.ParticleTypes;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.text.IFormattableTextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.Style;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.*;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.HoverEvent;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 import red.felnull.fnssu.Voltifiers;
 import red.felnull.fnssu.commands.MusicCommand;
-import red.felnull.fnssu.oldmusic.MusicManager;
+import red.felnull.fnssu.commands.TPSCommand;
+import red.felnull.fnssu.music.MusicManager;
 import red.felnull.fnssu.util.ItemUtils;
 import red.felnull.fnssu.util.PlayerUtils;
 import red.felnull.katyouvotifier.event.VotifierEvent;
@@ -173,5 +172,33 @@ public class ServerHandler {
     @SubscribeEvent
     public static void onCommandRegister(RegisterCommandsEvent e) {
         MusicCommand.reg(e.getDispatcher());
+        TPSCommand.reg(e.getDispatcher());
+    }
+
+    @SubscribeEvent
+    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent e) {
+        if (e.getPlayer().level.isClientSide())
+            return;
+
+        IFormattableTextComponent text = new StringTextComponent("");
+        int ct = 0;
+        for (Voltifiers value : Voltifiers.values()) {
+            if (value == Voltifiers.TEST || value == Voltifiers.NON)
+                continue;
+            IFormattableTextComponent voltsv = new StringTextComponent(value.getName());
+            voltsv = voltsv.withStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, value.getUrl())).withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new StringTextComponent(value.getServiceName()).withStyle(TextFormatting.BLUE))));
+            ct++;
+
+            text.append(voltsv);
+
+            if (ct != Voltifiers.values().length - 2)
+                text.append("、");
+        }
+
+        ITextComponent itemText = ItemUtils.getVItemComponent();
+
+        text.append(" で投票して").append(itemText).append("を手に入れよう!").withStyle(TextFormatting.DARK_AQUA);
+
+        e.getPlayer().displayClientMessage(text, false);
     }
 }

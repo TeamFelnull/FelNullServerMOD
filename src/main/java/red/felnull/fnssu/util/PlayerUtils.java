@@ -10,8 +10,16 @@ import java.util.UUID;
 public class PlayerUtils {
     private static final UUID TRANP_ID = UUID.fromString("5c751dd1-0882-4f31-ad61-c4ee928c4595");
 
+    public static ServerPlayerEntity getPlayer(UUID id) {
+        return ServerUtils.getMinecraftServer().getPlayerList().getPlayer(id);
+    }
+
     public static List<ServerPlayerEntity> getAllPlayer() {
         return ServerUtils.getMinecraftServer().getPlayerList().getPlayers();
+    }
+
+    public static boolean isOnline(UUID id) {
+        return getAllPlayer().stream().anyMatch(n -> n.getGameProfile().getId().equals(id));
     }
 
     public static void displayAllPlayer(ITextComponent component, boolean statusBar) {
