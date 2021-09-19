@@ -1,10 +1,12 @@
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = 'https://repo.spongepowered.org/maven' }
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
+        classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
     }
 }
 plugins {
@@ -14,8 +16,9 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
+apply plugin: 'org.spongepowered.mixin'
 
-version = '1.3'
+version = '1.4'
 group = 'red.felnull.fnssu'
 archivesBaseName = 'FelNullServerSideUtil-1.16.5'
 
@@ -29,6 +32,7 @@ minecraft {
     runs {
         client {
             workingDirectory project.file('run')
+            arg "-mixin.config=felnullserversideutil.mixins.json"
 
             property 'forge.logging.markers', 'REGISTRIES'
 
@@ -43,6 +47,7 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
+            arg "-mixin.config=felnullserversideutil.mixins.json"
 
             property 'forge.logging.markers', 'REGISTRIES'
 
@@ -57,6 +62,7 @@ minecraft {
 
         data {
             workingDirectory project.file('run')
+            arg "-mixin.config=felnullserversideutil.mixins.json"
 
             property 'forge.logging.markers', 'REGISTRIES'
 
@@ -74,8 +80,16 @@ minecraft {
 }
 repositories {
     maven {
-        name 'DVS1 Maven FS'
-        url 'http://dvs1.progwml6.com/files/maven'
+        name = "CurseForge"
+        url = "https://minecraft.curseforge.com/api/maven/"
+    }
+    maven {
+        name = "Progwml6 maven"
+        url = "https://dvs1.progwml6.com/files/maven/"
+    }
+    maven {
+        name = "ModMaven"
+        url = "https://modmaven.k-4u.nl"
     }
 }
 sourceSets.main.resources { srcDir 'src/generated/resources' }
@@ -88,13 +102,15 @@ configurations {
 dependencies {
 
     minecraft 'net.minecraftforge:forge:1.16.5-36.1.61'
+    annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
 
     compile fg.deobf(files("libs/KatyouVotifier-1.16.5-1.0-dev.jar"))
 
-    compile fg.deobf("slimeknights.mantle:Mantle:1.16.5-1.6.115")
-    compile fg.deobf("slimeknights.tconstruct:TConstruct:1.16.5-3.1.0.231")
-
     shadow files("libs/IkenaiNBSLibrary-1.0.jar")
+
+    compileOnly fg.deobf(files("libs/rats-7.2.0-1.16.5-deobf.jar"))
+ //   compile fg.deobf(files("libs/citadel-1.1.11-dev.jar"))
+
 }
 shadowJar {
     classifier ''
@@ -111,11 +127,15 @@ jar {
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : "${version}",
                 "Implementation-Vendor"   : "TeamFelNull",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "MixinConfigs"            : "felnullserversideutil.mixins.json"
         ])
     }
 }
-
+mixin {
+    add sourceSets.main, "felnullserversideutil.refmap.json"
+    add sourceSets.main, "citadel.refmap.json"
+}
 afterEvaluate {
     reobf {
         shadowJar { mappings = tasks.reobfJar.mappings }

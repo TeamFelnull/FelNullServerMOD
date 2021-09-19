@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "package": "dev.felnull.fnssu.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "felnullserversideutil.refmap.json",
+  "mixins": [
+    "RatUtilsMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "minVersion": "0.8"
+}
