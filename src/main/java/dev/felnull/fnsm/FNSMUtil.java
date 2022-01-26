@@ -28,7 +28,8 @@ public class FNSMUtil {
     }
 
     public static void executionAllPlayer(Consumer<ServerPlayerEntity> consumer) {
-        getServer().getPlayerList().getPlayers().forEach(consumer);
+        if (getServer() != null)
+            getServer().getPlayerList().getPlayers().forEach(consumer);
     }
 
     public static void sendMessageAllPlayer(ITextComponent component) {

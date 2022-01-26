@@ -12,7 +12,6 @@ import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.server.ServerWorld;
-import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -34,6 +33,7 @@ public class ServerHandler {
     private static final Map<String, Integer> VOTES = new HashMap<>();
     private static final Random random = new Random();
     private static long lastVote;
+    private static long lastPr;
 
     @SubscribeEvent
     public static void onVote(VotifierEvent e) {
@@ -48,10 +48,15 @@ public class ServerHandler {
             VOTES.put(e.getVote().getUsername(), VOTES.get(e.getVote().getUsername()) + 1);
         }
 
-        if (System.currentTimeMillis() - lastVote >= 10000) {
+        /*if (System.currentTimeMillis() - lastVote >= 1000 * 60) {
             lastVote = System.currentTimeMillis();
-            FNSMUtil.sendMessageAllPlayer(VoteService.getPromotion(null));
-        }
+            IFormattableTextComponent pr = VoteService.getPromotion(null);
+
+            FNSMUtil.executionAllPlayer(n -> {
+                if (!n.getGameProfile().getName().equals(v.getUsername()))
+                    n.displayClientMessage(pr, false);
+            });
+        }*/
     }
 
     @SubscribeEvent
@@ -93,7 +98,7 @@ public class ServerHandler {
             for (int i = 0; i < 30; i++) {
                 Vector3d vec3d = new Vector3d(((double) random.nextFloat() - 0.5D) * 0.1D, Math.random() * 0.1D + 0.1D, 0.0D);
                 Vector3d pls = new Vector3d(e.player.getX() + ((double) random.nextFloat() - 0.5D), e.player.getY() + ((double) random.nextFloat() - 0.5D), e.player.getZ() + ((double) random.nextFloat() - 0.5D));
-                ((ServerWorld) e.player.level).sendParticles(ParticleTypes.HAPPY_VILLAGER, pls.x, pls.y, pls.z, 50, vec3d.x, vec3d.y + 0.05D, vec3d.z, 2.0D);
+                ((ServerWorld) e.player.level).sendParticles(ParticleTypes.LARGE_SMOKE, pls.x, pls.y, pls.z, 50, vec3d.x, vec3d.y + 0.05D, vec3d.z, 2.0D);
             }
             VOTES.remove(name);
         }
@@ -130,8 +135,18 @@ public class ServerHandler {
         }
     }
 
-    @SubscribeEvent
+    /*@SubscribeEvent
     public static void onCommandRegister(RegisterCommandsEvent e) {
-        // MusicCommand.reg(e.getDispatcher());
+        MusicCommand.reg(e.getDispatcher());
+    }*/
+    
+    @SubscribeEvent
+    public static void onServerTick(TickEvent.ServerTickEvent e) {
+        if (e.phase != TickEvent.Phase.START) return;
+        if (System.currentTimeMillis() - lastPr >= 1000 * 60 * 60) {
+            lastPr = System.currentTimeMillis();
+            IFormattableTextComponent pr = VoteService.getPromotion(null);
+            FNSMUtil.sendMessageAllPlayer(pr);
+        }
     }
 }
