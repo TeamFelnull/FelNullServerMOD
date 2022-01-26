@@ -1,12 +1,12 @@
-modLoader="javafml"
-loaderVersion="[36,)"
-license="LGPL v3"
+modLoader = "javafml"
+loaderVersion = "[36,)"
+license = "GNU LGPLv3"
 [[mods]]
-modId="felnullserversideutil"
-version="${file.jarVersion}"
-displayName="FelNull Server Side Util"
-credits="TeamFelNull"
-authors="MORIMORI0317"
-description='''
-The Fel Null Server Util
+modId = "felnullservermod"
+version = "${file.jarVersion}"
+displayName = "FelNull Server MOD"
+credits = "TeamFelNull"
+authors = "MORIMORI0317"
+description = '''
+The Ikisugi FelNull Server MOD
 '''

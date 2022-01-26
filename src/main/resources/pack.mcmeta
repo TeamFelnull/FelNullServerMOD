@@ -1,7 +1,6 @@
 {
-    "pack": {
-        "description": "felnullserversideutil resources",
-        "pack_format": 6,
-        "_comment": "A FelNullServerSideUtil Pack"
-    }
+  "pack": {
+    "description": "felnullservermod resources",
+    "pack_format": 6
+  }
 }

@@ -1,45 +1,35 @@
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
-        maven { url = 'https://repo.spongepowered.org/maven' }
         mavenCentral()
     }
     dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '4.1.+', changing: true
-        classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7-SNAPSHOT'
+        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
     }
 }
-plugins {
-    id "com.github.johnrengelman.shadow" version "4.0.4"
-}
-
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-apply plugin: 'org.spongepowered.mixin'
 
-version = '1.4'
-group = 'red.felnull.fnssu'
-archivesBaseName = 'FelNullServerSideUtil-1.16.5'
+version = '2022SP-1.0'
+group = 'dev.felnull'
+archivesBaseName = 'FelNullServerMOD-1.16.5'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
-
     mappings channel: 'official', version: '1.16.5'
 
     runs {
         client {
             workingDirectory project.file('run')
-            arg "-mixin.config=felnullserversideutil.mixins.json"
 
             property 'forge.logging.markers', 'REGISTRIES'
 
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                felnullserversideutil {
+                felnullservermod {
                     source sourceSets.main
                 }
             }
@@ -47,14 +37,13 @@ minecraft {
 
         server {
             workingDirectory project.file('run')
-            arg "-mixin.config=felnullserversideutil.mixins.json"
 
             property 'forge.logging.markers', 'REGISTRIES'
 
             property 'forge.logging.console.level', 'debug'
 
             mods {
-                felnullserversideutil {
+                felnullservermod {
                     source sourceSets.main
                 }
             }
@@ -62,97 +51,51 @@ minecraft {
 
         data {
             workingDirectory project.file('run')
-            arg "-mixin.config=felnullserversideutil.mixins.json"
 
             property 'forge.logging.markers', 'REGISTRIES'
 
             property 'forge.logging.console.level', 'debug'
 
-            args '--mod', 'felnullserversideutil', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+            args '--mod', 'felnullservermod', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
 
             mods {
-                felnullserversideutil {
+                felnullservermod {
                     source sourceSets.main
                 }
             }
         }
     }
 }
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
 repositories {
     maven {
-        name = "CurseForge"
-        url = "https://minecraft.curseforge.com/api/maven/"
-    }
-    maven {
-        name = "Progwml6 maven"
-        url = "https://dvs1.progwml6.com/files/maven/"
-    }
-    maven {
-        name = "ModMaven"
-        url = "https://modmaven.k-4u.nl"
+        name = "FelNull"
+        url = "https://maven.felnull.dev/"
     }
 }
-sourceSets.main.resources { srcDir 'src/generated/resources' }
-
-configurations {
-    shadow
-    compile.extendsFrom(shadow)
-}
-
 dependencies {
+    minecraft 'net.minecraftforge:forge:1.16.5-36.2.20'
 
-    minecraft 'net.minecraftforge:forge:1.16.5-36.1.61'
-    annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
+    implementation 'dev.felnull:katyouvotifier:3.0.0-SNAPSHOT-1.0'
 
-    compile fg.deobf(files("libs/KatyouVotifier-1.16.5-1.0-dev.jar"))
-
-    shadow files("libs/IkenaiNBSLibrary-1.0.jar")
-
-    compileOnly fg.deobf(files("libs/rats-7.2.0-1.16.5-deobf.jar"))
- //   compile fg.deobf(files("libs/citadel-1.1.11-dev.jar"))
-
+    implementation files("libs/IkenaiNBSLibrary-1.0.jar")
+    implementation 'dev.felnull:felnull-java-library:1.39'
 }
-shadowJar {
-    classifier ''
-    project.configurations.shadow.setTransitive(true);
-    configurations = [project.configurations.shadow]
-     relocate 'red.felnull.ikenainbs', 'red.felnull.fnssu.libs.red.felnull.ikenainbs'
-}
+
 jar {
     manifest {
         attributes([
-                "Specification-Title"     : "FelNullServerSideUtil",
+                "Specification-Title"     : "felnullservermod",
                 "Specification-Vendor"    : "MORIMORI0317",
                 "Specification-Version"   : "1",
                 "Implementation-Title"    : project.name,
                 "Implementation-Version"  : "${version}",
                 "Implementation-Vendor"   : "TeamFelNull",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                "MixinConfigs"            : "felnullserversideutil.mixins.json"
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }
-mixin {
-    add sourceSets.main, "felnullserversideutil.refmap.json"
-    add sourceSets.main, "citadel.refmap.json"
-}
-afterEvaluate {
-    reobf {
-        shadowJar { mappings = tasks.reobfJar.mappings }
-    }
-}
 
-jar.finalizedBy('reobfJar')
+jar.finalizedBy('reobfJar') 
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact jar
-        }
-    }
-    repositories {
-        maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
-        }
-    }
-}
