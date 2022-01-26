@@ -139,7 +139,7 @@ public class ServerHandler {
     public static void onCommandRegister(RegisterCommandsEvent e) {
         MusicCommand.reg(e.getDispatcher());
     }*/
-    
+
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent e) {
         if (e.phase != TickEvent.Phase.START) return;

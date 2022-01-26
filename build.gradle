@@ -7,6 +7,9 @@ buildscript {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
     }
 }
+plugins {
+    id "com.github.johnrengelman.shadow" version "4.0.4"
+}
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 
@@ -74,28 +77,60 @@ repositories {
         url = "https://maven.felnull.dev/"
     }
 }
+configurations {
+    shadowIn
+    implementation.extendsFrom(shadowIn)
+}
+
 dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.20'
 
     implementation 'dev.felnull:katyouvotifier:3.0.0-SNAPSHOT-1.0'
 
-    implementation files("libs/IkenaiNBSLibrary-1.0.jar")
-    implementation 'dev.felnull:felnull-java-library:1.39'
+    shadowIn files("libs/IkenaiNBSLibrary-1.0.jar")
+    shadowIn 'dev.felnull:felnull-java-library:1.39'
+}
+ext.themanifest = {
+    attributes([
+            "Specification-Title"     : "katyouvotifier",
+            "Specification-Vendor"    : "MORIMORI0317",
+            "Specification-Version"   : "1",
+            "Implementation-Title"    : project.name,
+            "Implementation-Version"  : "${version}",
+            "Implementation-Vendor"   : "TeamFelNull",
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+    ])
 }
 
-jar {
-    manifest {
-        attributes([
-                "Specification-Title"     : "felnullservermod",
-                "Specification-Vendor"    : "MORIMORI0317",
-                "Specification-Version"   : "1",
-                "Implementation-Title"    : project.name,
-                "Implementation-Version"  : "${version}",
-                "Implementation-Vendor"   : "TeamFelNull",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
+shadowJar {
+    configurations = [project.configurations.shadowIn]
+    classifier ''
+    relocate 'red.felnull.ikenainbs', 'dev.felnull.fnsm.libs.red.felnull.ikenainbs'
+    relocate 'dev.felnull.fnjl', 'dev.felnull.fnsm.libs.dev.felnull.fnjl'
+}
+
+afterEvaluate {
+    reobf {
+        shadowJar { mappings = tasks.reobfJar.mappings }
     }
 }
 
-jar.finalizedBy('reobfJar') 
+jar {
+    manifest themanifest
+}
 
+task devJar(type: Jar) {
+    from sourceSets.main.output
+    classifier = 'dev'
+    manifest themanifest
+}
+task sourceJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier = 'sources'
+    manifest themanifest
+}
+artifacts {
+    archives devJar
+    archives sourceJar
+}
+jar.finalizedBy('reobfJar')
