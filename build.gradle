@@ -13,7 +13,7 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 
-version = '2022SP-1.1'
+version = '2022SP-1.2'
 group = 'dev.felnull'
 archivesBaseName = 'FelNullServerMOD-1.16.5'
 

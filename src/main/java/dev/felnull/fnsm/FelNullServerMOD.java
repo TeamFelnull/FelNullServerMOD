@@ -20,6 +20,7 @@ public class FelNullServerMOD {
     public static final String MODID = "felnullservermod";
     public static NBS hqmCompNBS;
     public static NBS worldOfTono;
+    public static NBS godHand;
 
     public FelNullServerMOD() {
         ModLoadingContext.get().registerExtensionPoint(ExtensionPoint.DISPLAYTEST, () -> Pair.of(() -> FMLNetworkConstants.IGNORESERVERONLY, (a, b) -> true));
@@ -32,6 +33,7 @@ public class FelNullServerMOD {
         try {
             hqmCompNBS = new NBS(FNDataUtil.resourceExtractor(FelNullServerMOD.class, "data/nbs/HQMComplete.nbs"));
             worldOfTono = new NBS(FNDataUtil.resourceExtractor(FelNullServerMOD.class, "data/nbs/world_of_tono.nbs"));
+            godHand = new NBS(FNDataUtil.resourceExtractor(FelNullServerMOD.class, "data/nbs/God_Hand.nbs"));
         } catch (IOException e) {
         }
     }

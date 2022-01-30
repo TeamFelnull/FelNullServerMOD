@@ -16,11 +16,13 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 public class MusicPlayer {
+    private static int numCt;
     private final UUID uuid;
     private final NBS nbs;
     private final Supplier<Vector3d> playPos;
     private final Supplier<ResourceLocation> playDim;
     private final int loopCount;
+    private final int num;
     private AsyncNBSPlayer nbsPlayer;
 
     public MusicPlayer(UUID uuid, NBS nbs, Supplier<Vector3d> playPos, Supplier<ResourceLocation> playDim, int loopCount) {
@@ -29,6 +31,7 @@ public class MusicPlayer {
         this.playPos = playPos;
         this.playDim = playDim;
         this.loopCount = loopCount;
+        this.num = numCt++;
     }
 
     public void start(boolean loop) {
@@ -37,9 +40,10 @@ public class MusicPlayer {
                 SoundEvent event = ForgeRegistries.SOUND_EVENTS.getValue(new ResourceLocation(iInstrument.getSoundName()));
                 ring(event, volume, pitch);
             });
-            nbsPlayer.playStart();
-            nbsPlayer.setLoop(loop);
+            nbsPlayer.setForcedLoop(loop);
             nbsPlayer.setMaxLoopCount(loopCount);
+            nbsPlayer.setPlayThreadName("Music Player " + num);
+            nbsPlayer.playStart();
         }
     }
 
