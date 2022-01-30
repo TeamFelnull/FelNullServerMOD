@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.vexsoftware.votifier.model.Vote;
+import dev.felnull.fnnbs.NBS;
+import dev.felnull.fnsm.commands.MusicCommand;
 import dev.felnull.fnsm.music.MusicManager;
 import dev.felnull.katyouvotifier.event.VotifierEvent;
 import net.minecraft.particles.ParticleTypes;
@@ -12,6 +14,7 @@ import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -27,10 +30,12 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.UUID;
 
 public class ServerHandler {
     private static final Gson GSON = new Gson();
     private static final Map<String, Integer> VOTES = new HashMap<>();
+    private static final Map<String, Integer> VOTES_COUNT = new HashMap<>();
     private static final Random random = new Random();
     private static long lastVote;
     private static long lastPr;
@@ -38,6 +43,7 @@ public class ServerHandler {
     @SubscribeEvent
     public static void onVote(VotifierEvent e) {
         Vote v = e.getVote();
+        addVoteCount(v.getUsername());
         IFormattableTextComponent svm = VoteService.getByServiceName(v.getServiceName()).getComponent(v.getServiceName());
         IFormattableTextComponent msg = new StringTextComponent(v.getUsername() + "さんが").append(svm).append("で投票しました!").withStyle(TextFormatting.YELLOW);
         FNSMUtil.sendMessageAllPlayer(msg);
@@ -78,18 +84,19 @@ public class ServerHandler {
 
             int added = 0;
             for (int i = 0; i < cont; i++) {
-                if (random.nextInt(30) == 0) {
+                if (random.nextInt(19) == 0) {
                     added++;
                 }
             }
-            if (added >= 1)
+            NBS nbs = FelNullServerMOD.hqmCompNBS;
+            if (added >= 1) {
                 e.player.displayClientMessage(new StringTextComponent("投票ありがとナス！").withStyle(TextFormatting.DARK_PURPLE), false);
-            else
+                nbs = FelNullServerMOD.worldOfTono;
+            } else {
                 e.player.displayClientMessage(new StringTextComponent("投票ありがとうございます！").withStyle(TextFormatting.GREEN), false);
+            }
 
-            // e.player.playNotifySound(SoundEvents.ANVIL_PLACE, SoundCategory.PLAYERS, 10, 1);
-
-            MusicManager.getInstance().start(FelNullServerMOD.hqmCompNBS, e.player::position, () -> e.player.level.dimension().location());
+            MusicManager.getInstance().start(nbs, e.player::position, () -> e.player.level.dimension().location(), UUID.randomUUID(), false, 0);
 
             for (int i = 0; i < cont + added; i++) {
                 FNSMUtil.giveItem(e.player, FNSMUtil.createVoteItem());
@@ -101,6 +108,13 @@ public class ServerHandler {
                 ((ServerWorld) e.player.level).sendParticles(ParticleTypes.LARGE_SMOKE, pls.x, pls.y, pls.z, 50, vec3d.x, vec3d.y + 0.05D, vec3d.z, 2.0D);
             }
             VOTES.remove(name);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onTick(TickEvent.ServerTickEvent e) {
+        if (e.side.isServer() && e.phase == TickEvent.Phase.START) {
+            MusicManager.getInstance().tick();
         }
     }
 
@@ -118,27 +132,91 @@ public class ServerHandler {
                 VOTES.put(entry.getKey(), entry.getValue().getAsInt());
             }
         }
+
+        File vcfile = new File(FelNullServerMOD.MODID, "votifier_count.json");
+        if (vcfile.exists()) {
+            JsonObject jo = null;
+            try {
+                jo = GSON.fromJson(new BufferedReader(new FileReader(vcfile)), JsonObject.class);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+            for (Map.Entry<String, JsonElement> entry : jo.entrySet()) {
+                VOTES_COUNT.put(entry.getKey(), entry.getValue().getAsInt());
+            }
+        }
+
+        File mfile = new File(FelNullServerMOD.MODID, "musics.json");
+        if (mfile.exists()) {
+            JsonObject jo = null;
+            try {
+                jo = GSON.fromJson(new BufferedReader(new FileReader(mfile)), JsonObject.class);
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+            for (Map.Entry<String, JsonElement> entry : jo.entrySet()) {
+                MusicManager.getInstance().getMusicURLs().put(entry.getKey(), entry.getValue().getAsString());
+            }
+        }
+    }
+
+    private static void addVoteCount(String userName) {
+        Integer ct = VOTES_COUNT.get(userName);
+        if (ct == null)
+            ct = 0;
+        ct++;
+        VOTES_COUNT.put(userName, ct);
     }
 
     @SubscribeEvent
     public static void onServerStop(FMLServerStoppingEvent e) {
         File vfile = new File(FelNullServerMOD.MODID, "votifier.json");
         vfile.getParentFile().mkdirs();
-        JsonObject jo = new JsonObject();
-        for (Map.Entry<String, Integer> stringIntegerEntry : VOTES.entrySet()) {
-            jo.addProperty(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
+        {
+            JsonObject jo = new JsonObject();
+            for (Map.Entry<String, Integer> stringIntegerEntry : VOTES.entrySet()) {
+                jo.addProperty(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
+            }
+            try {
+                Files.write(vfile.toPath(), GSON.toJson(jo).getBytes(StandardCharsets.UTF_8));
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
         }
-        try {
-            Files.write(vfile.toPath(), GSON.toJson(jo).getBytes(StandardCharsets.UTF_8));
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
+
+        File vcfile = new File(FelNullServerMOD.MODID, "votifier_count.json");
+        vcfile.getParentFile().mkdirs();
+        {
+            JsonObject jo = new JsonObject();
+            for (Map.Entry<String, Integer> stringIntegerEntry : VOTES_COUNT.entrySet()) {
+                jo.addProperty(stringIntegerEntry.getKey(), stringIntegerEntry.getValue());
+            }
+            try {
+                Files.write(vcfile.toPath(), GSON.toJson(jo).getBytes(StandardCharsets.UTF_8));
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
+        }
+
+        File mfile = new File(FelNullServerMOD.MODID, "musics.json");
+        mfile.getParentFile().mkdirs();
+        {
+            JsonObject jo = new JsonObject();
+            for (Map.Entry<String, String> entry : MusicManager.getInstance().getMusicURLs().entrySet()) {
+                jo.addProperty(entry.getKey(), entry.getValue());
+            }
+            try {
+                Files.write(mfile.toPath(), GSON.toJson(jo).getBytes(StandardCharsets.UTF_8));
+            } catch (IOException ioException) {
+                ioException.printStackTrace();
+            }
         }
     }
 
-    /*@SubscribeEvent
+    @SubscribeEvent
     public static void onCommandRegister(RegisterCommandsEvent e) {
         MusicCommand.reg(e.getDispatcher());
-    }*/
+    }
 
     @SubscribeEvent
     public static void onServerTick(TickEvent.ServerTickEvent e) {

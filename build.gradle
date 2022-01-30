@@ -13,7 +13,7 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 
-version = '2022SP-1.0'
+version = '2022SP-1.1'
 group = 'dev.felnull'
 archivesBaseName = 'FelNullServerMOD-1.16.5'
 
@@ -87,8 +87,8 @@ dependencies {
 
     implementation 'dev.felnull:katyouvotifier:3.0.0-SNAPSHOT-1.0'
 
-    shadowIn files("libs/IkenaiNBSLibrary-1.0.jar")
     shadowIn 'dev.felnull:felnull-java-library:1.39'
+    shadowIn 'dev.felnull:felnull-nbs-library:1.1'
 }
 ext.themanifest = {
     attributes([
@@ -105,7 +105,7 @@ ext.themanifest = {
 shadowJar {
     configurations = [project.configurations.shadowIn]
     classifier ''
-    relocate 'red.felnull.ikenainbs', 'dev.felnull.fnsm.libs.red.felnull.ikenainbs'
+    relocate 'dev.felnull.fnnbs', 'dev.felnull.fnsm.libs.dev.felnull.fnnbs'
     relocate 'dev.felnull.fnjl', 'dev.felnull.fnsm.libs.dev.felnull.fnjl'
 }
 
