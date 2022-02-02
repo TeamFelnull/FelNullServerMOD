@@ -14,6 +14,7 @@ import net.minecraft.nbt.StringNBT;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.*;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.fml.LogicalSide;
 import net.minecraftforge.fml.LogicalSidedProvider;
 import net.minecraftforge.registries.ForgeRegistries;
@@ -65,5 +66,19 @@ public class FNSMUtil {
     public static void giveItem(PlayerEntity player, ItemStack stack) {
         if (!player.addItem(stack))
             player.drop(stack, false, true);
+    }
+
+    public static double getTPS(ServerWorld world) {
+        long[] times = world.getServer().getTickTime(world.dimension());
+        if (times == null) return -1;
+        double worldTickTime = mean(times) * 1.0E-6D;
+        return Math.min(1000.0 / worldTickTime, 20);
+    }
+
+    private static long mean(long[] values) {
+        long sum = 0L;
+        for (long v : values)
+            sum += v;
+        return sum / values.length;
     }
 }

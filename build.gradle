@@ -13,7 +13,7 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 
-version = '2022SP-1.2'
+version = '2022SP-1.3'
 group = 'dev.felnull'
 archivesBaseName = 'FelNullServerMOD-1.16.5'
 
@@ -87,8 +87,9 @@ dependencies {
 
     implementation 'dev.felnull:katyouvotifier:3.0.0-SNAPSHOT-1.0'
 
-    shadowIn 'dev.felnull:felnull-java-library:1.39'
+    shadowIn 'dev.felnull:felnull-java-library:1.41'
     shadowIn 'dev.felnull:felnull-nbs-library:1.1'
+    shadowIn 'net.dv8tion:JDA:5.0.0-alpha.5'
 }
 ext.themanifest = {
     attributes([
@@ -107,6 +108,22 @@ shadowJar {
     classifier ''
     relocate 'dev.felnull.fnnbs', 'dev.felnull.fnsm.libs.dev.felnull.fnnbs'
     relocate 'dev.felnull.fnjl', 'dev.felnull.fnsm.libs.dev.felnull.fnjl'
+    relocate 'tomp2p.opuswrapper', 'dev.felnull.fnsm.libs.tomp2p.opuswrapper'
+    relocate 'okio', 'dev.felnull.fnsm.libs.okio'
+    relocate 'okhttp3', 'dev.felnull.fnsm.libs.okhttp3'
+    relocate 'net.dv8tion', 'dev.felnull.fnsm.libs.net.dv8tion'
+    relocate 'natives', 'dev.felnull.fnsm.libs.natives'
+    relocate 'javax.annotation', 'dev.felnull.fnsm.libs.javax.annotation'
+    relocate 'gnu.trove', 'dev.felnull.fnsm.libs.gnu.trove'
+    relocate 'club.minnced.opus', 'dev.felnull.fnsm.libs.club.minnced.opus'
+    relocate 'org.slf4j', 'dev.felnull.fnsm.libs.org.slf4j'
+    relocate 'org.jetbrains', 'dev.felnull.fnsm.libs.org.jetbrains'
+    relocate 'org.intellij', 'dev.felnull.fnsm.libs.org.intellij'
+    relocate 'org.apache.commons.collections4', 'dev.felnull.fnsm.libs.org.apache.commons.collections4'
+    relocate 'com.sun.jna', 'dev.felnull.fnsm.libs.com.sun.jna'
+    relocate 'com.neovisionaries.ws', 'dev.felnull.fnsm.libs.com.neovisionaries.ws'
+    relocate 'com.iwebpp.crypto', 'dev.felnull.fnsm.libs.com.iwebpp.crypto'
+    relocate 'com.fasterxml.jackson', 'dev.felnull.fnsm.libs.com.fasterxml.jackson'
 }
 
 afterEvaluate {

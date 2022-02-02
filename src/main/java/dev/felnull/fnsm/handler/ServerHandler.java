@@ -1,10 +1,13 @@
-package dev.felnull.fnsm;
+package dev.felnull.fnsm.handler;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.vexsoftware.votifier.model.Vote;
 import dev.felnull.fnnbs.NBS;
+import dev.felnull.fnsm.FNSMUtil;
+import dev.felnull.fnsm.FelNullServerMOD;
+import dev.felnull.fnsm.VoteService;
 import dev.felnull.fnsm.commands.MusicCommand;
 import dev.felnull.fnsm.music.MusicManager;
 import dev.felnull.katyouvotifier.event.VotifierEvent;
@@ -88,7 +91,7 @@ public class ServerHandler {
                     added++;
                 }
             }
-            NBS nbs = random.nextInt(5) == 0 ? FelNullServerMOD.godHand : FelNullServerMOD.hqmCompNBS;
+            NBS nbs = random.nextInt(10) == 0 ? FelNullServerMOD.godHand : FelNullServerMOD.hqmCompNBS;
             if (added >= 1) {
                 e.player.displayClientMessage(new StringTextComponent("投票ありがとナス！").withStyle(TextFormatting.DARK_PURPLE), false);
                 nbs = FelNullServerMOD.worldOfTono;
