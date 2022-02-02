@@ -91,7 +91,7 @@ public class ServerHandler {
                     added++;
                 }
             }
-            NBS nbs = random.nextInt(10) == 0 ? FelNullServerMOD.godHand : FelNullServerMOD.hqmCompNBS;
+            NBS nbs = random.nextInt(6) == 0 ? FelNullServerMOD.godHand : FelNullServerMOD.hqmCompNBS;
             if (added >= 1) {
                 e.player.displayClientMessage(new StringTextComponent("投票ありがとナス！").withStyle(TextFormatting.DARK_PURPLE), false);
                 nbs = FelNullServerMOD.worldOfTono;

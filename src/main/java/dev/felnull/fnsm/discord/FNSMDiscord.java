@@ -19,6 +19,7 @@ public class FNSMDiscord {
     private static boolean stop;
 
     private static void sendWebHookAsync(String name, String avatar, String contend) {
+        if (ServerConfig.getWebhookUrl().isEmpty()) return;
         DiscordWebHookBuilder db = new DiscordWebHookBuilder(ServerConfig.getWebhookUrl(), contend);
         db.setUsername(name);
         db.setAvatarUrl(avatar);
@@ -35,12 +36,10 @@ public class FNSMDiscord {
         try {
             jda = JDABuilder.createDefault(ServerConfig.getDiscordToken()).build();
             jda.addEventListener(new DiscordListener());
+            setStatus(OnlineStatus.IDLE, Activity.watching("サーバー起動開始"));
         } catch (LoginException e) {
             e.printStackTrace();
-            return;
         }
-
-        setStatus(OnlineStatus.IDLE, Activity.watching("サーバー起動開始"));
     }
 
     public static void setStatus(OnlineStatus status, Activity activity) {
@@ -53,6 +52,11 @@ public class FNSMDiscord {
             jda.shutdownNow();
 
         stop = true;
+    }
+
+    public static void setChannelMessage(String text) {
+        if (jda != null && !stop)
+            getChannel().getManager().setTopic(text).queue();
     }
 
     public static void sendMessage(String message) {

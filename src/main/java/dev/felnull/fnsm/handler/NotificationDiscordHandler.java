@@ -24,26 +24,20 @@ import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
 import net.minecraftforge.fml.event.server.FMLServerStoppingEvent;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 
 public class NotificationDiscordHandler {
     private static final DecimalFormat TIME_FORMATTER = new DecimalFormat("########0.0");
+    private static final SimpleDateFormat timeFormat = new SimpleDateFormat("MM月dd日hh時mm分");
     private static long lastUpdate;
+    private static long startTime;
 
     @SubscribeEvent
     public static void onTick(TickEvent.ServerTickEvent e) {
-        if (System.currentTimeMillis() - lastUpdate >= 1000 * 60*3) {
+        if (System.currentTimeMillis() - lastUpdate >= 1000 * 60 * 3) {
             lastUpdate = System.currentTimeMillis();
-            MinecraftServer server = FNSMUtil.getServer();
-            for (ServerWorld lv : server.getAllLevels()) {
-                if (DimensionType.OVERWORLD_LOCATION.location().equals(lv.dimension().location())) {
-                    double tps = FNSMUtil.getTPS(lv);
-                    if (tps >= 0)
-                        FNSMDiscord.setStatus(OnlineStatus.ONLINE, Activity.playing(String.format("2022春季サーバー(%sTPS)", TIME_FORMATTER.format(FNSMUtil.getTPS(lv)))));
-                    else
-                        FNSMDiscord.setStatus(OnlineStatus.ONLINE, Activity.playing("2022春季サーバー"));
-                    break;
-                }
-            }
+            FNSMDiscord.setStatus(OnlineStatus.ONLINE, Activity.playing(createActivityMessage(FNSMUtil.getServer())));
+            //  FNSMDiscord.setChannelMessage(String.format("現在の状態: %s/%s人のオンラインプレイヤー | %sからオンライン", server.getPlayerCount(), server.getMaxPlayers(), timeFormat.format(new Date(startTime))));
         }
     }
 
@@ -51,6 +45,26 @@ public class NotificationDiscordHandler {
     public static void onServerStart(FMLServerStartingEvent e) {
         FNSMDiscord.setStatus(OnlineStatus.ONLINE, Activity.playing("2022春季サーバー"));
         FNSMDiscord.sendMessage(":fish: サーバーが開きました！");
+        lastUpdate = System.currentTimeMillis() - (1000 * 60 * 2);
+        startTime = System.currentTimeMillis();
+        FNSMDiscord.setStatus(OnlineStatus.ONLINE, Activity.playing(createActivityMessage(e.getServer())));
+        //FNSMDiscord.setChannelMessage(String.format("現在の状態: %s/%s人のオンラインプレイヤー | %sからオンライン", server.getPlayerCount(), server.getMaxPlayers(), timeFormat.format(new Date(startTime))));
+    }
+
+    private static String createActivityMessage(MinecraftServer server) {
+        ServerWorld ovlv = null;
+        for (ServerWorld lv : server.getAllLevels()) {
+            if (DimensionType.OVERWORLD_LOCATION.location().equals(lv.dimension().location())) {
+                ovlv = lv;
+                break;
+            }
+        }
+        if (ovlv != null) {
+            double tpsc = FNSMUtil.getTPS(ovlv);
+            if (tpsc >= 0)
+                return String.format("2022春季サーバー(%sTPS %s/%s人)", TIME_FORMATTER.format(tpsc), server.getPlayerCount(), server.getMaxPlayers());
+        }
+        return String.format("2022春季サーバー(%s/%s人)", server.getPlayerCount(), server.getMaxPlayers());
     }
 
     @SubscribeEvent
@@ -99,6 +113,7 @@ public class NotificationDiscordHandler {
 
     @SubscribeEvent
     public static void onServerStop(FMLServerStoppingEvent e) {
+        //    FNSMDiscord.setChannelMessage("起動していません");
         FNSMDiscord.sendMessage(":fishing_pole_and_fish: サーバーが停止しました！");
         FNSMDiscord.setStatus(OnlineStatus.IDLE, Activity.watching("サーバー停止"));
     }

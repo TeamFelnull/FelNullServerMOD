@@ -13,7 +13,7 @@ plugins {
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 
-version = '2022SP-1.3'
+version = '2022SP-1.4'
 group = 'dev.felnull'
 archivesBaseName = 'FelNullServerMOD-1.16.5'
 
@@ -76,6 +76,7 @@ repositories {
         name = "FelNull"
         url = "https://maven.felnull.dev/"
     }
+    mavenCentral()
 }
 configurations {
     shadowIn
@@ -85,7 +86,7 @@ configurations {
 dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.2.20'
 
-    implementation 'dev.felnull:katyouvotifier:3.0.0-SNAPSHOT-1.0'
+    implementation 'dev.felnull:katyouvotifier:3.0.0-SNAPSHOT-1.1'
 
     shadowIn 'dev.felnull:felnull-java-library:1.41'
     shadowIn 'dev.felnull:felnull-nbs-library:1.1'

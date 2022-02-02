@@ -5,6 +5,7 @@ import dev.felnull.fnsm.ServerConfig;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.minecraft.util.text.*;
+import net.minecraft.util.text.event.HoverEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class DiscordListener extends ListenerAdapter {
@@ -16,8 +17,16 @@ public class DiscordListener extends ListenerAdapter {
         TextComponent com = (TextComponent) new StringTextComponent("[Discord] ").withStyle(TextFormatting.DARK_AQUA);
         ITextComponent n1com = new StringTextComponent("<").withStyle(TextFormatting.WHITE);
         TextComponent nkcom = new StringTextComponent(e.getAuthor().getName());
-        if (e.getMember() != null && e.getMember().getColor() != null)
-            nkcom.withStyle(Style.EMPTY.withColor(Color.fromRgb(e.getMember().getColor().getRGB())));
+
+        if (e.getMember() != null) {
+            if (e.getMember().getNickname() != null) {
+                nkcom = (TextComponent) new StringTextComponent(e.getMember().getNickname()).withStyle(Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new StringTextComponent(e.getAuthor().getName()).withStyle(TextFormatting.DARK_AQUA))));
+            }
+            if (e.getMember().getColor() != null)
+                nkcom.withStyle(Style.EMPTY.withColor(Color.fromRgb(e.getMember().getColor().getRGB())));
+        }
+
+
         ITextComponent n2com = new StringTextComponent("> ").withStyle(TextFormatting.WHITE);
         ITextComponent mcom = new StringTextComponent(message).withStyle(TextFormatting.WHITE);
         sendServerMessage(com.append(n1com).append(nkcom).append(n2com).append(mcom));
