@@ -105,9 +105,11 @@ public class NotificationDiscordHandler {
     public static void onVote(VotifierEvent e) {
         Vote v = e.getVote();
         ServerPlayerEntity player = FNSMUtil.getServer().getPlayerList().getPlayerByName(v.getUsername());
+        VoteService vs = VoteService.getByServiceName(v.getServiceName());
         if (player != null) {
-            VoteService vs = VoteService.getByServiceName(v.getServiceName());
             FNSMDiscord.sendMessageByPlayerAsync(player, String.format("**%s** で投票しました", vs.getName()));
+        } else {
+            FNSMDiscord.sendMessage(String.format("%sさんが **%s** で投票しました", v.getUsername(), vs.getName()));
         }
     }
 

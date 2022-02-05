@@ -99,6 +99,8 @@ public class ServerHandler {
                 e.player.displayClientMessage(new StringTextComponent("投票ありがとうございます！").withStyle(TextFormatting.GREEN), false);
             }
 
+            e.player.displayClientMessage(new StringTextComponent("FTBチームに入る際にインベントリ内のアイテムが消えてしまうようです、消えてほしくない場合は投票アイテムなどを地面に投げてからチームに入ってください。").withStyle(TextFormatting.RED), false);
+
             MusicManager.getInstance().start(nbs, e.player::position, () -> e.player.level.dimension().location(), UUID.randomUUID(), false, 0);
 
             for (int i = 0; i < cont + added; i++) {
